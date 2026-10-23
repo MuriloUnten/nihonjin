@@ -2,10 +2,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 #include "cores.h"
-#include "imagem.h"
 #include "pdi.h"
-#include "segmenta.h"
 
 #define TESTS_COUNT 5
 
@@ -18,6 +17,8 @@ typedef struct TestParams {
     int  count;
 } TestParams;
 
+/* *************** test params *************** */
+const bool save_images = true;
 const TestParams tests[TESTS_COUNT] = {
     { .filename = "60.bmp",  .count = 60  },
     { .filename = "82.bmp",  .count = 82  },
@@ -25,6 +26,7 @@ const TestParams tests[TESTS_COUNT] = {
     { .filename = "150.bmp", .count = 150 },
     { .filename = "205.bmp", .count = 205 },
 };
+/* ******************************************* */
 
 const Cor color_red = {
     .canais = { 247, 38, 38 },
@@ -84,7 +86,7 @@ double median_int(int arr[], int n);
 //     }
 // }
 
-int count(Imagem *img, const char *identifier) {
+int count(Imagem *img, const char *identifier, bool save_images) {
     assert(img != NULL);
 
     Imagem *grayscale = criaImagem(img->largura, img->altura, 1);
@@ -136,13 +138,16 @@ int count(Imagem *img, const char *identifier) {
             continue;
         }
     }
-    char segmented_path[64];
-    snprintf(segmented_path, 64, "./output/%s_bounds.bmp", identifier);
-    salvaImagem(bounds, segmented_path);
 
-    char output_path[64];
-    snprintf(output_path, 64, "./output/%s_binarized.bmp", identifier);
-    salvaImagem(binary, output_path);
+    if (save_images) {
+        char segmented_path[64];
+        snprintf(segmented_path, 64, "./output/%s_bounds.bmp", identifier);
+        salvaImagem(bounds, segmented_path);
+
+        char output_path[64];
+        snprintf(output_path, 64, "./output/%s_binarized.bmp", identifier);
+        salvaImagem(binary, output_path);
+    }
 
     destroiImagem(binary);
     destroiImagem(eroded);
@@ -162,7 +167,7 @@ int main() {
         char identifier[5];
         sprintf(identifier, "%d", test.count);
 
-        int rice_count = count(img, identifier);
+        int rice_count = count(img, identifier, save_images);
         printf("Image %s: expected %d, found %d\n", test.filename, test.count, rice_count);
         destroiImagem(img);
     }
